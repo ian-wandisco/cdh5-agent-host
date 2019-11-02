@@ -2,13 +2,14 @@
 
 FROM ubuntu:16.04
 
-ENV CM_SERVER_URL 172.31.4.74
+#ENV CM_SERVER_URL 172.31.4.74
 
 #SSH
-RUN apt-get -qq update && apt-get -qq install -y openssh-server curl
+RUN apt-get -qq update && apt-get -qq install -y openssh-server curl vim apt-transport-https ca-certificates iputils-ping
+
 RUN mkdir /var/run/sshd
 RUN echo 'root:wandisco99' | chpasswd
-RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
@@ -16,24 +17,22 @@ RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so
 ENV NOTVISIBLE "in users profile"
 RUN echo "export VISIBLE=now" >> /etc/profile
 
-EXPOSE 22
+EXPOSE 22 9000 9001
 CMD ["/usr/sbin/sshd", "-D"]
 RUN service ssh restart
-
 # Add a Repository Key
-RUN curl -L https://archive.cloudera.com/cm5/ubuntu/trusty/amd64/cm/cloudera.list -o /etc/apt/sources.list.d/cloudera.list
+RUN curl -L https://archive.cloudera.com/cdh5/ubuntu/xenial/amd64/cdh/cloudera.list -o /etc/apt/sources.list.d/cloudera.list
 # Add the Cloudera Public GPG Key to your repository
-RUN curl -L https://archive.cloudera.com/cm5/ubuntu/trusty/amd64/cm/archive.key -o archive.key
+RUN curl -L http://archive.cloudera.com/cdh5/ubuntu/xenial/amd64/cdh/archive.key -o archive.key
 RUN apt-key add archive.key
 # Clean repository cache
-RUN apt-get -qq update
 
-RUN apt-get -qq install -y oracle-j2sdk1.7 cloudera-manager-agent cloudera-manager-daemons
+RUN apt-get -qq update && apt-get -qq install -y openjdk-8-jdk 
+#RUN apt-get update && apt-get -qq install -y cloudera-manager-agent cloudera-manager-daemons
+#RUN service cloudera-scm-agent stop
+#RUN sed -i "s|server_host=.*|server_host=${CM_SERVER_URL}|" /etc/cloudera-scm-agent/config.ini
+#RUN service cloudera-scm-agent restart
 
-RUN service cloudera-scm-agent stop
-RUN sed -i "s|server_host=.*|server_host=${CM_SERVER_URL}|" /etc/cloudera-scm-agent/config.ini
-RUN service cloudera-scm-agent restart
-
-ADD post-install.sh /tmp/post-install.sh
-RUN chmod +x /tmp/post-install.sh
-RUN /bin/bash -c /tmp/post-install.sh
+#ADD post-install.sh /tmp/post-install.sh
+#RUN chmod +x /tmp/post-install.sh
+#RUN /bin/bash -c /tmp/post-install.sh
