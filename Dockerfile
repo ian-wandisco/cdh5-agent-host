@@ -27,7 +27,8 @@ RUN curl -L http://archive.cloudera.com/cdh5/ubuntu/xenial/amd64/cdh/archive.key
 RUN apt-key add archive.key
 # Clean repository cache
 
-RUN apt-get -qq update && apt-get -qq install -y openjdk-8-jdk 
+RUN apt-get -qq update && apt-get -qq install -y perl apache2 netbase python2.7-minimal fuse mysql-common  ntp make ssl-cert rename netbase 
+
 #RUN apt-get update && apt-get -qq install -y cloudera-manager-agent cloudera-manager-daemons
 #RUN service cloudera-scm-agent stop
 #RUN sed -i "s|server_host=.*|server_host=${CM_SERVER_URL}|" /etc/cloudera-scm-agent/config.ini
